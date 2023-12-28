@@ -41,7 +41,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Invalid email or Password", 401));
     }
 
-    const isPasswordMatched = user.comparePassword(password);
+    const isPasswordMatched = await user.comparePassword(password);
 
     if (!isPasswordMatched) {
         return next(new ErrorHandler("Invalid email or password", 401));
@@ -69,7 +69,7 @@ const forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user)
-        return next(new ErrorHandler("User not found yet", 404));
+        return next(new ErrorHandler(`User not found yet ${user}`, 404));
 
     // Get ResetPassword Token
     const resetToken = user.getResetPasswordToken();
@@ -82,13 +82,7 @@ const forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
     try {
 
-        await sendEmail({
-
-            email: user.email,
-            subject: `Ecommerce Password Recovery`,
-            message
-
-        });
+        await sendEmail("resetpassword" , user , message);
 
         res.status(200).json({
             success: true,
@@ -176,7 +170,7 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
         email: req.body.email
     };
 
-    // We will add cloudiary later
+    // We will add cloudinary later
 
     const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
         new: true,
@@ -229,6 +223,9 @@ const updateUserRole = catchAsyncErrors(async (req, res, next) => {
         runValidators: true,
         useFindAndModify: false
     });
+
+    if(!user)
+        return next(new ErrorHandler(`User does not exist with Id: ${req.params.id}`));
 
     res.status(200).json({
         success: true

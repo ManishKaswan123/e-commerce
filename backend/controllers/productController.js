@@ -115,7 +115,7 @@ const createProductReview = catchAsyncErrors(async (req, res, next) => {
         product.reviews.forEach(rev => {
             if (rev.user.toString() === req.user._id.toString()) {
                 rev.rating = rating,
-                    rev.comment = comment
+                rev.comment = comment
             }
         });
     }
